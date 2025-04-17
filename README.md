@@ -39,8 +39,8 @@ A simple and efficient tool for managing Sonarr instances.
 The application uses environment variables for configuration. Create a `.env` file with the following variables:
 
 ```env
-API_KEY=your_api_key
-ENVIRONMENT=production
+DATABASE_URL=sqlite:///./data/grabarr.db
+API_KEY=your_api_key_here
 ```
 
 ## Usage
@@ -51,12 +51,6 @@ ENVIRONMENT=production
 4. Start managing your Sonarr instances
 
 ## Development
-
-### Running Tests
-
-```bash
-pytest
-```
 
 ### Code Style
 

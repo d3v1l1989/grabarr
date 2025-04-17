@@ -15,10 +15,11 @@ setup_logging()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="grabarr",
-    version=settings.VERSION,
-    docs_url="/api/docs" if settings.ENVIRONMENT == "development" else None,
-    redoc_url="/api/redoc" if settings.ENVIRONMENT == "development" else None
+    title="Grabarr API",
+    description="API for Grabarr application",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
 )
 
 # Configure CORS

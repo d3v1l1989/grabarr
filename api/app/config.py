@@ -9,7 +9,6 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Grabarr"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
-    ENVIRONMENT: str = "development"
     
     # API Key
     API_KEY: str
