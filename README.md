@@ -1,30 +1,6 @@
-# Sonarr Grabarr - Project Plan
+# grabarr
 
-## Phase 1: Core Foundation (MVP)
-
-### Infrastructure Setup
-- Docker Compose configuration with services:
-  * API Service (FastAPI) - Port 8765
-  * Redis (for caching and queuing) - Port 7369
-  * PostgreSQL (main database) - Port 6543
-  * GraphQL API layer
-  * Frontend (React + TypeScript) - Port 3456
-
-### Basic Features
-1. Sonarr Instance Management:
-   * CRUD operations for instances
-   * Connection testing with retry logic
-   * Basic configuration storage
-
-2. Core Data Layer:
-   * Database schema design (grabarr database)
-   * Redis cache implementation
-   * Basic GraphQL schema
-
-3. Simple Web UI:
-   * Instance management interface
-   * Basic status display
-   * Authentication system
+A powerful tool for managing multiple Sonarr instances and optimizing search operations.
 
 ## Features
 
@@ -46,7 +22,7 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/grabarr.git
+git clone https://github.com/d3v1l1989/grabarr.git
 cd grabarr
 ```
 
