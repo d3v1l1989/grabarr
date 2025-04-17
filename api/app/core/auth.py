@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 from typing import Optional
 
 from .session import get_session, delete_session, create_session
-from ..config import settings
+from app.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
