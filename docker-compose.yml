@@ -2,7 +2,11 @@ version: '3.8'
 
 services:
   api:
-    build: ./api
+    container_name: grabarr-api
+    image: ghcr.io/d3v1l1989/grabarr-api:latest
+    build:
+      context: ./api
+      dockerfile: Dockerfile
     ports:
       - "8765:8765"
     environment:
@@ -19,6 +23,7 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8765 --reload
 
   postgres:
+    container_name: grabarr-postgres
     image: postgres:13
     environment:
       - POSTGRES_USER=postgres
@@ -30,6 +35,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   redis:
+    container_name: grabarr-redis
     image: redis:alpine
     ports:
       - "7369:7369"
@@ -37,7 +43,11 @@ services:
       - redis_data:/data
 
   frontend:
-    build: ./frontend
+    container_name: grabarr-frontend
+    image: ghcr.io/d3v1l1989/grabarr-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3456:3456"
     volumes:

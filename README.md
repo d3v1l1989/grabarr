@@ -36,6 +36,35 @@ docker-compose up -d
 - API: http://localhost:8765
 - GraphQL Playground: http://localhost:8765/graphql
 
+## Development with GitHub Workspaces
+
+GitHub Workspaces provides a pre-configured development environment. To use it:
+
+1. Navigate to the "Actions" tab in your repository
+2. Select the "Development Workspace" workflow
+3. Click "Run workflow"
+4. Wait for the workspace to be set up
+5. Access the development environment through the provided URL
+
+The workspace includes:
+- Pre-configured Python and Node.js environments
+- Running PostgreSQL and Redis instances
+- Hot-reloading development servers
+- Database migrations
+
+## Using ghcr.io Images
+
+The application's Docker images are available on GitHub Container Registry (ghcr.io):
+
+- API: `ghcr.io/d3v1l1989/grabarr-api:latest`
+- Frontend: `ghcr.io/d3v1l1989/grabarr-frontend:latest`
+
+To pull the images:
+```bash
+docker pull ghcr.io/d3v1l1989/grabarr-api:latest
+docker pull ghcr.io/d3v1l1989/grabarr-frontend:latest
+```
+
 ## Project Structure
 
 ```
