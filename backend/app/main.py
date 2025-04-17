@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import sonarr, queue, health
+from app.routers import sonarr, queue, health
 import os
 from dotenv import load_dotenv
 
