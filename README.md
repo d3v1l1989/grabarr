@@ -8,7 +8,6 @@ A simple and efficient tool for managing Sonarr instances.
 - 🎯 Simple and intuitive interface
 - 💾 SQLite database for data persistence
 - 🐳 Docker support for easy deployment
-- 🔒 API key authentication
 - 🔄 In-memory queue for efficient job processing
 
 ## 📋 Requirements
@@ -27,12 +26,7 @@ git clone https://github.com/d3v1l1989/grabarr.git
 cd grabarr
 ```
 
-2. Create a `.env` file with your API key:
-```env
-API_KEY=your_api_key_here
-```
-
-3. Start the application:
+2. Start the application:
 ```bash
 docker-compose up -d
 ```
@@ -59,24 +53,14 @@ python -m venv venv
 pip install -r api/requirements.txt
 ```
 
-5. Create a `.env` file with your API key:
-```env
-API_KEY=your_api_key_here
-```
-
-6. Start the application:
+5. Start the application:
 ```bash
 python api/run.py
 ```
 
 ## ⚙️ Configuration
 
-The application uses environment variables for configuration. Create a `.env` file with the following variables:
-
-```env
-DATABASE_URL=sqlite:///./data/grabarr.db
-API_KEY=your_api_key_here
-```
+The application uses SQLite for data storage. The database file is automatically created at `./data/grabarr.db`.
 
 ## 🐳 Docker Compose Configuration
 
@@ -96,7 +80,6 @@ services:
       - "8765:8765"
     environment:
       - DATABASE_URL=sqlite:///./data/grabarr.db
-      - API_KEY=${API_KEY}
     volumes:
       - api_data:/app/data
 

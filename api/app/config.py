@@ -1,4 +1,4 @@
-from pydantic import BaseSettings, validator
+from pydantic import BaseSettings
 from typing import Optional, List
 import os
 from dotenv import load_dotenv
@@ -9,9 +9,6 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Grabarr"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
-    
-    # API Key
-    API_KEY: str
     
     # Database
     DATABASE_URL: str = "sqlite:///./data/grabarr.db"
@@ -24,14 +21,8 @@ class Settings(BaseSettings):
     SONARR_BASE_URL: Optional[str] = None
     
     # Rate Limiting
-    RATE_LIMIT_WINDOW: int = 300  # 5 minutes
+    RATE_LIM_WINDOW: int = 300  # 5 minutes
     MAX_REQUESTS_PER_WINDOW: int = 100
-    
-    @validator("API_KEY")
-    def validate_api_key(cls, v):
-        if len(v) < 16:
-            raise ValueError("API_KEY must be at least 16 characters long")
-        return v
     
     class Config:
         case_sensitive = True
