@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./api
+    ports:
+      - "8765:8765"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:6543/grabarr
+      - REDIS_URL=redis://redis:7369/0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./api:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8765 --reload
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=grabarr
+    ports:
+      - "6543:6543"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "7369:7369"
+    volumes:
+      - redis_data:/data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3456:3456"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - REACT_APP_API_URL=http://localhost:8765
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data: 
