@@ -1,6 +1,9 @@
-from pydantic import BaseModel, HttpUrl
-from typing import Optional
+# Standard library imports
 from datetime import datetime
+from typing import Optional
+
+# Third-party imports
+from pydantic import BaseModel, HttpUrl
 
 class SonarrInstanceBase(BaseModel):
     name: str
