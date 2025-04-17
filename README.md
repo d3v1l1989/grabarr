@@ -92,6 +92,7 @@ services:
       - API_V1_STR=/api/v1
     volumes:
       - api_data:/app/data
+      - ./.env:/app/.env
     env_file:
       - .env
 
@@ -198,23 +199,4 @@ npm install
 ```
 
 3. Start the development server:
-```bash
-npm start
 ```
-
-## 📦 Using ghcr.io Images
-
-The application's Docker images are available on GitHub Container Registry (ghcr.io):
-
-- API: `ghcr.io/d3v1l1989/grabarr-api:latest`
-- Frontend: `ghcr.io/d3v1l1989/grabarr-frontend:latest`
-
-To pull the images:
-```bash
-docker pull ghcr.io/d3v1l1989/grabarr-api:latest
-docker pull ghcr.io/d3v1l1989/grabarr-frontend:latest
-```
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
