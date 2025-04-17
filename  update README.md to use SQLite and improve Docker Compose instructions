@@ -1,0 +1,141 @@
+[1mdiff --git a/README.md b/README.md[m
+[1mindex f51e01a..f00d889 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -12,13 +12,10 @@[m [mA simple and efficient tool for managing Sonarr instances.[m
+ [m
+ ## 📋 Requirements[m
+ [m
+[31m-- Python 3.8+[m
+[31m-- Docker (optional)[m
+[31m-- Sonarr instances to manage[m
+[32m+[m[32m- Docker and Docker Compose[m
+[32m+[m[32m- Sonarr instances to manage (optional)[m
+ [m
+[31m-## 🛠️ Installation[m
+[31m-[m
+[31m-### Docker (Recommended)[m
+[32m+[m[32m## 🛠️ Quick Start with Docker Compose[m
+ [m
+ 1. Clone the repository:[m
+ ```bash[m
+[36m@@ -26,45 +23,49 @@[m [mgit clone https://github.com/d3v1l1989/grabarr.git[m
+ cd grabarr[m
+ ```[m
+ [m
+[31m-2. Start the application:[m
+[32m+[m[32m2. Configure your environment:[m
+[32m+[m[32m   - Copy `.env.example` to `.env`[m
+[32m+[m[32m   - Update the environment variables in `.env` as needed[m
+[32m+[m
+[32m+[m[32m3. Start the application:[m
+ ```bash[m
+ docker-compose up -d[m
+ ```[m
+ [m
+[31m-### Manual Installation[m
+[32m+[m[32mThe application will be available at:[m
+[32m+[m[32m- Frontend: http://localhost:3456[m
+[32m+[m[32m- API: http://localhost:8765[m
+ [m
+[31m-1. Clone the repository:[m
+[31m-```bash[m
+[31m-git clone https://github.com/d3v1l1989/grabarr.git[m
+[31m-cd grabarr[m
+[31m-```[m
+[32m+[m[32m## ⚙️ Configuration[m
+ [m
+[31m-2. Create a virtual environment:[m
+[31m-```bash[m
+[31m-python -m venv venv[m
+[31m-```[m
+[32m+[m[32mThe application uses environment variables for configuration. Create a `.env` file with the following variables:[m
+ [m
+[31m-3. Activate the virtual environment:[m
+[31m-   - Windows: `venv\Scripts\activate`[m
+[31m-   - Unix/MacOS: `source venv/bin/activate`[m
+[32m+[m[32m```env[m
+[32m+[m[32mPROJECT_NAME=Grabarr[m
+[32m+[m[32mVERSION=1.0.0[m
+[32m+[m[32mAPI_V1_STR=/api/v1[m
+ [m
+[31m-4. Install dependencies:[m
+[31m-```bash[m
+[31m-pip install -r api/requirements.txt[m
+[31m-```[m
+[32m+[m[32m# Authentication[m
+[32m+[m[32mADMIN_USERNAME=admin[m
+[32m+[m[32mADMIN_PASSWORD=admin123[m
+ [m
+[31m-5. Start the application:[m
+[31m-```bash[m
+[31m-python api/run.py[m
+[31m-```[m
+[32m+[m[32m# API Key (for simple authentication)[m
+[32m+[m[32mAPI_KEY=your_api_key_here[m
+ [m
+[31m-## ⚙️ Configuration[m
+[32m+[m[32m# Database[m
+[32m+[m[32mDATABASE_URL=sqlite:///./data/grabarr.db[m
+ [m
+[31m-The application uses SQLite for data storage. The database file is automatically created at `./data/grabarr.db`.[m
+[32m+[m[32m# Sonarr (Optional)[m
+[32m+[m[32m# SONARR_API_KEY=your_sonarr_api_key[m
+[32m+[m[32m# SONARR_BASE_URL=http://localhost:8989[m
+[32m+[m[32m```[m
+ [m
+ ## 🐳 Docker Compose Configuration[m
+ [m
+[31m-Here's the default `docker-compose.yml` configuration:[m
+[32m+[m[32mThe default `docker-compose.yml` includes:[m
+[32m+[m
+[32m+[m[32m- FastAPI backend[m
+[32m+[m[32m- React frontend[m
+ [m
+ ```yaml[m
+ version: '3.8'[m
+[36m@@ -100,7 +101,7 @@[m [mvolumes:[m
+   api_data:[m
+ ```[m
+ [m
+[31m-## 🏗️ Project Structure[m
+[32m+[m[32m## ��️ Project Structure[m
+ [m
+ ```[m
+ grabarr/[m
+[36m@@ -127,6 +128,35 @@[m [mgrabarr/[m
+ [m
+ ## 💻 Development[m
+ [m
+[32m+[m[32m### Manual Installation (Alternative)[m
+[32m+[m
+[32m+[m[32mIf you prefer to run the application without Docker:[m
+[32m+[m
+[32m+[m[32m1. Clone the repository:[m
+[32m+[m[32m```bash[m
+[32m+[m[32mgit clone https://github.com/d3v1l1989/grabarr.git[m
+[32m+[m[32mcd grabarr[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m2. Create a virtual environment:[m
+[32m+[m[32m```bash[m
+[32m+[m[32mpython -m venv venv[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m3. Activate the virtual environment:[m
+[32m+[m[32m   - Windows: `venv\Scripts\activate`[m
+[32m+[m[32m   - Unix/MacOS: `source venv/bin/activate`[m
+[32m+[m
+[32m+[m[32m4. Install dependencies:[m
+[32m+[m[32m```bash[m
+[32m+[m[32mpip install -r api/requirements.txt[m
+[32m+[m[32m```[m
+[32m+[m
+[32m+[m[32m5. Start the application:[m
+[32m+[m[32m```bash[m
+[32m+[m[32mpython api/run.py[m
+[32m+[m[32m```[m
+[32m+[m
+ ### Backend Development[m
+ [m
+ 1. Navigate to the API directory:[m
