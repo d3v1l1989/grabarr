@@ -6,16 +6,15 @@ from strawberry.fastapi import GraphQLRouter
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.sonarr_instance import SonarrInstance
-from app.services.sonarr_instance import test_sonarr_connection
+from app.services.sonarr_instance import SonarrInstanceService
 from app.services.queue_service import QueueService
 import strawberry
 from fastapi import Depends
 import os
 
-from ..core.auth import get_current_user, verify_password, authenticate_user, login as auth_login
-from ..core.session import create_session, delete_session
-from ..database import get_db
-from ..models.user import User
+from app.core.auth import get_current_user, verify_password, authenticate_user, login as auth_login
+from app.core.session import create_session, delete_session
+from app.models.user import User
 
 class InstanceStatus(str, Enum):
     ONLINE = "online"
@@ -136,8 +135,13 @@ class Mutation:
 
     @strawberry.mutation
     async def test_connection(self, info, input: ConnectionTestInput) -> ConnectionTestResult:
-        result = await test_sonarr_connection(input.url, input.api_key)
-        return ConnectionTestResult(**result)
+        db = next(get_db())
+        service = SonarrInstanceService(db)
+        success = await service._test_connection(input.url, input.api_key)
+        return ConnectionTestResult(
+            success=success,
+            message="Connection successful" if success else "Failed to connect to Sonarr instance"
+        )
 
     @strawberry.mutation
     async def login(
