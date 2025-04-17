@@ -1,12 +1,17 @@
+# Standard library imports
+from typing import Dict, Any
+
+# Third-party imports
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
+# Local application imports
 from app.routers import sonarr, queue, health
 from app.graphql.schema import graphql_app
 from app.core.database import engine, Base
 from app.config import settings
 from app.core.logging import setup_logging
 from app.services.queue_service import QueueService
-from typing import Dict, Any
 
 # Setup logging
 setup_logging()

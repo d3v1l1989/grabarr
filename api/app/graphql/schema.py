@@ -1,20 +1,24 @@
-from typing import List, Optional, Dict
-from pydantic import BaseModel
+# Standard library imports
+import os
 from datetime import datetime
 from enum import Enum
-from strawberry.fastapi import GraphQLRouter
+from typing import List, Optional, Dict
+
+# Third-party imports
+from fastapi import Depends
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
+import strawberry
+from strawberry.fastapi import GraphQLRouter
+
+# Local application imports
+from app.core.auth import get_current_user, verify_password, authenticate_user, login as auth_login
 from app.core.database import get_db
+from app.core.session import create_session, delete_session
 from app.models.sonarr_instance import SonarrInstance
+from app.models.user import User
 from app.services.sonarr_instance import SonarrInstanceService
 from app.services.queue_service import QueueService
-import strawberry
-from fastapi import Depends
-import os
-
-from app.core.auth import get_current_user, verify_password, authenticate_user, login as auth_login
-from app.core.session import create_session, delete_session
-from app.models.user import User
 
 class InstanceStatus(str, Enum):
     ONLINE = "online"
