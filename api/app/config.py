@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
+    # Authentication
+    ADMIN_USERNAME: str
+    ADMIN_PASSWORD: str
+    
     # Database
     DATABASE_URL: str = "sqlite:///./data/grabarr.db"
     

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, sonarr, queue, health
-from app.graphql.router import graphql_router
+from app.routers import sonarr, queue, health
+from app.graphql.schema import graphql_app
 from app.core.database import engine, Base
 from app.config import settings
 from app.core.logging import setup_logging
@@ -33,11 +33,12 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(sonarr.router, prefix="/api/sonarr", tags=["sonarr"])
-app.include_router(queue.router, prefix="/api/queue", tags=["queue"])
-app.include_router(health.router, prefix="/health", tags=["health"])
-app.include_router(graphql_router)
+app.include_router(sonarr.router, prefix="/api", tags=["sonarr"])
+app.include_router(queue.router, prefix="/api", tags=["queue"])
+app.include_router(health.router, prefix="/api", tags=["health"])
+
+# Include GraphQL
+app.include_router(graphql_app, prefix="/graphql")
 
 @app.get("/")
 async def root():

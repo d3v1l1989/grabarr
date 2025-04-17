@@ -8,6 +8,14 @@ from app.core.database import get_db
 from app.models.sonarr_instance import SonarrInstance
 from app.services.sonarr_instance import test_sonarr_connection
 from app.services.queue_service import QueueService
+import strawberry
+from fastapi import Depends
+import os
+
+from ..core.auth import get_current_user, verify_password, authenticate_user, login as auth_login
+from ..core.session import create_session, delete_session
+from ..database import get_db
+from ..models.user import User
 
 class InstanceStatus(str, Enum):
     ONLINE = "online"
@@ -62,6 +70,14 @@ class ConnectionTestInput:
     api_key: str
 
 @strawberry.type
+class LoginResponse:
+    message: str
+
+@strawberry.type
+class LogoutResponse:
+    message: str
+
+@strawberry.type
 class Query:
     @strawberry.field
     async def sonarr_instances(self, info) -> List[SonarrInstanceType]:
@@ -79,6 +95,11 @@ class Query:
             )
             for instance in instances
         ]
+
+    @strawberry.field
+    async def me(self, info) -> Optional[str]:
+        user = await get_current_user()
+        return user
 
 @strawberry.type
 class Mutation:
@@ -118,5 +139,32 @@ class Mutation:
         result = await test_sonarr_connection(input.url, input.api_key)
         return ConnectionTestResult(**result)
 
+    @strawberry.mutation
+    async def login(
+        self,
+        info,
+        username: str,
+        password: str,
+    ) -> LoginResponse:
+        try:
+            session_id = await auth_login(username, password)
+            response = info.context["response"]
+            response.set_cookie(
+                key="session_id",
+                value=session_id,
+                httponly=True,
+                secure=True,
+                samesite="lax"
+            )
+            return LoginResponse(message="Login successful")
+        except Exception as e:
+            raise Exception("Invalid username or password")
+
+    @strawberry.mutation
+    async def logout(self, info) -> LogoutResponse:
+        response = info.context["response"]
+        response.delete_cookie("session_id")
+        return LogoutResponse(message="Logout successful")
+
 schema = strawberry.Schema(query=Query, mutation=Mutation)
-graphql_app = GraphQLRouter(schema, context_getter=lambda: {"db": next(get_db())}) 
+graphql_app = GraphQLRouter(schema) 

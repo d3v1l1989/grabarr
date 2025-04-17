@@ -9,8 +9,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8765:8765"
-    environment:
-      - DATABASE_URL=sqlite:///./data/grabarr.db
+    env_file:
+      - ./api/.env
     volumes:
       - api_data:/app/data
 
