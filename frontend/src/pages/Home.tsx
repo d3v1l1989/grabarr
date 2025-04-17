@@ -13,7 +13,7 @@ const Home: React.FC = () => {
       </Typography>
       
       <Grid container spacing={3} sx={{ mt: 4 }}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
               Instance Management
@@ -27,24 +27,13 @@ const Home: React.FC = () => {
           </Paper>
         </Grid>
         
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
               Search Optimization
             </Typography>
             <Typography paragraph>
               Queue and optimize searches across your instances for better performance.
-            </Typography>
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, height: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Real-time Monitoring
-            </Typography>
-            <Typography paragraph>
-              Monitor the status of your instances and search operations in real-time.
             </Typography>
           </Paper>
         </Grid>

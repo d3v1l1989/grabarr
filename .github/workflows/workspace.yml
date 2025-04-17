@@ -2,50 +2,21 @@ name: Development Workspace
 
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [workspace_requested]
 
 jobs:
-  setup-workspace:
+  setup:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Start services
+      - uses: actions/checkout@v2
+      
+      - name: Start development environment
         run: |
-          docker-compose up -d postgres redis
-          sleep 10  # Wait for services to be ready
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install Python dependencies
+          docker-compose up -d api frontend
+          
+      - name: Wait for services to be ready
         run: |
-          cd api
-          pip install -r requirements.txt
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install Node.js dependencies
+          sleep 10
+          
+      - name: Check API health
         run: |
-          cd frontend
-          npm install
-
-      - name: Run database migrations
-        run: |
-          cd api
-          alembic upgrade head
-
-      - name: Start development servers
-        run: |
-          cd api && uvicorn app.main:app --reload --port 8765 &
-          cd frontend && npm start 
+          curl -f http://localhost:8765/health 

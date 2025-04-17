@@ -1,10 +1,7 @@
-from typing import Dict, Any, Optional, List
-import json
-import time
-import uuid
-from datetime import datetime, timedelta
-from app.utils.cache import CacheManager
-from app.services.smart_search import SmartSearchService
+from typing import Dict, Any, Optional
+from datetime import datetime
+import asyncio
+from collections import deque
 
 class SearchJob:
     def __init__(self, job_id: str, instance_id: int, episode_id: int, series_id: int, 
@@ -60,129 +57,52 @@ class SearchJob:
         return job
 
 class QueueService:
-    def __init__(self, cache_manager: CacheManager):
-        self.cache = cache_manager
-        self.queue_key = "search_queue"
-        self.processing_key = "processing"
-        self.smart_search = SmartSearchService(cache_manager)
-        self.rate_limit_key = "search:rate_limit:{instance_id}"
-        self.max_concurrent_searches = 3
-        self.rate_limit_window = 300  # 5 minutes
-        self.max_searches_per_window = 10
+    def __init__(self):
+        self.queue = deque()
+        self.processing = deque()
+        self.jobs: Dict[str, Dict[str, Any]] = {}
+        self.lock = asyncio.Lock()
 
-    async def add_search(self, instance_id: int, episode_id: int, series_id: int,
-                        season_number: int, episode_number: int, priority: int = 0) -> str:
-        # Get optimal delay from smart search
-        optimal_delay = await self.smart_search.get_optimal_delay(
-            series_id, season_number, episode_number
-        )
-        
-        job_id = str(uuid.uuid4())
-        job = SearchJob(
-            job_id=job_id,
-            instance_id=instance_id,
-            episode_id=episode_id,
-            series_id=series_id,
-            season_number=season_number,
-            episode_number=episode_number,
-            priority=priority,
-            delay=optimal_delay
-        )
-        
-        job_data = {
-            'job_id': job.job_id,
-            'instance_id': job.instance_id,
-            'episode_id': job.episode_id,
-            'series_id': job.series_id,
-            'season_number': job.season_number,
-            'episode_number': job.episode_number,
-            'priority': job.priority,
-            'delay': job.delay,
-            'created_at': job.created_at.isoformat(),
-            'status': job.status,
-            'retry_count': job.retry_count,
-            'last_attempt': job.last_attempt.isoformat() if job.last_attempt else None,
-            'error': job.error
+    async def add_search(self, search_data: Dict[str, Any]) -> str:
+        job_id = str(len(self.jobs) + 1)
+        self.jobs[job_id] = {
+            **search_data,
+            "status": "queued",
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
         }
-        
-        await self.cache.redis.zadd(
-            self.queue_key,
-            {json.dumps(job_data): -priority}  # Negative priority for correct ordering
-        )
-        
+        self.queue.append(job_id)
         return job_id
 
-    async def process_next_job(self) -> Optional[SearchJob]:
-        # Check rate limiting
-        current_time = datetime.utcnow()
-        window_start = current_time - timedelta(seconds=self.rate_limit_window)
-        
-        processing_jobs = await self.cache.redis.zrange(self.processing_key, 0, -1)
-        recent_jobs = [
-            job for job in processing_jobs
-            if datetime.fromisoformat(json.loads(job)['created_at']) > window_start
-        ]
-        
-        if len(recent_jobs) >= self.max_searches_per_window:
-            return None
-        
-        # Get next job from queue
-        job_data = await self.cache.redis.zrange(self.queue_key, -1, -1)
-        if not job_data:
-            return None
-        
-        job_dict = json.loads(job_data[0])
-        job = SearchJob(
-            job_id=job_dict['job_id'],
-            instance_id=job_dict['instance_id'],
-            episode_id=job_dict['episode_id'],
-            series_id=job_dict['series_id'],
-            season_number=job_dict['season_number'],
-            episode_number=job_dict['episode_number'],
-            priority=job_dict['priority'],
-            delay=job_dict['delay']
-        )
-        
-        # Move to processing
-        await self.cache.redis.zrem(self.queue_key, job_data[0])
-        await self.cache.redis.zadd(
-            self.processing_key,
-            {job_data[0]: datetime.utcnow().timestamp()}
-        )
-        
-        return job
+    async def get_next_job(self) -> Optional[Dict[str, Any]]:
+        async with self.lock:
+            if not self.queue:
+                return None
+            
+            job_id = self.queue.popleft()
+            job = self.jobs[job_id]
+            job["status"] = "processing"
+            job["updated_at"] = datetime.utcnow().isoformat()
+            self.processing.append(job_id)
+            return job
 
-    async def complete_job(self, job_id: str, success: bool, error: Optional[str] = None):
-        processing_jobs = await self.cache.redis.zrange(self.processing_key, 0, -1)
-        for job_data in processing_jobs:
-            job_dict = json.loads(job_data)
-            if job_dict['job_id'] == job_id:
-                job_dict['status'] = 'completed' if success else 'failed'
-                job_dict['last_attempt'] = datetime.utcnow().isoformat()
-                job_dict['error'] = error
-                
-                # Update smart search pattern
-                await self.smart_search.update_pattern(
-                    await self.smart_search.get_pattern(
-                        job_dict['series_id'],
-                        job_dict['season_number'],
-                        job_dict['episode_number']
-                    ),
-                    success,
-                    job_dict['delay']
-                )
-                
-                await self.cache.redis.zrem(self.processing_key, job_data)
-                break
+    async def complete_job(self, job_id: str, result: Dict[str, Any]) -> None:
+        async with self.lock:
+            if job_id in self.processing:
+                self.processing.remove(job_id)
+            if job_id in self.jobs:
+                self.jobs[job_id].update({
+                    "status": "completed",
+                    "result": result,
+                    "updated_at": datetime.utcnow().isoformat()
+                })
 
-    async def get_queue_status(self) -> Dict:
-        queue_size = await self.cache.redis.zcard(self.queue_key)
-        processing_size = await self.cache.redis.zcard(self.processing_key)
-        
+    async def get_queue_status(self) -> Dict[str, Any]:
         return {
-            'queue_size': queue_size,
-            'processing_size': processing_size,
-            'max_concurrent_searches': self.max_concurrent_searches,
-            'rate_limit_window': self.rate_limit_window,
-            'max_searches_per_window': self.max_searches_per_window
-        } 
+            "queued": len(self.queue),
+            "processing": len(self.processing),
+            "total_jobs": len(self.jobs)
+        }
+
+    async def get_job_status(self, job_id: str) -> Optional[Dict[str, Any]]:
+        return self.jobs.get(job_id) 
