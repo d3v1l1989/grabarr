@@ -9,6 +9,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8765:8765"
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:6543/grabarr
       - REDIS_URL=redis://redis:7369/0
