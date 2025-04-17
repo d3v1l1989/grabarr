@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Optional
 import httpx
+import os
 
 router = APIRouter()
 
