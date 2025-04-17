@@ -1,6 +1,11 @@
+# Standard library imports
+from typing import Dict, Any, Optional
+
+# Third-party imports
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict, Any, Optional
+
+# Local application imports
 from app.core.database import get_db
 from app.services.queue_service import QueueService
 
