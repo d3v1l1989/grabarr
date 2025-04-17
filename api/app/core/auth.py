@@ -1,10 +1,14 @@
+# Standard library imports
+from typing import Optional
+
+# Third-party imports
 from fastapi import Depends, HTTPException, status, Cookie
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
-from typing import Optional
 
-from app.core.session import get_session, delete_session, create_session
+# Local application imports
 from app.config import settings
+from app.core.session import get_session, delete_session, create_session
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

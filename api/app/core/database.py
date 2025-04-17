@@ -1,7 +1,10 @@
+# Standard library imports
+import os
+
+# Third-party imports
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
 
 # Create data directory if it doesn't exist
 os.makedirs("data", exist_ok=True)

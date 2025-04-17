@@ -1,6 +1,7 @@
-from typing import Optional
+# Standard library imports
 import uuid
 from datetime import datetime, timedelta
+from typing import Optional
 
 # Simple in-memory session storage
 active_sessions = {}

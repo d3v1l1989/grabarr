@@ -1,8 +1,9 @@
+# Standard library imports
+import json
 import logging
 import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-import json
 from typing import Any
 
 class JSONFormatter(logging.Formatter):
