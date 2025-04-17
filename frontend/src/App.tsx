@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ApolloProvider } from '@apollo/client';
 import { Layout } from 'antd';
-import { client } from './services/graphql';
+import client from './services/graphql';
 import InstanceList from './components/InstanceList';
 import InstanceForm from './components/InstanceForm';
 import './App.css';

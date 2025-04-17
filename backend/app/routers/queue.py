@@ -1,15 +1,21 @@
 from fastapi import APIRouter
+from typing import List
+from pydantic import BaseModel
 
 router = APIRouter()
 
-@router.get("/queue")
-async def get_queue():
-    return {"queue": []}
+class QueueItem(BaseModel):
+    id: int
+    title: str
+    status: str
+    progress: float
 
-@router.post("/queue")
-async def add_to_queue():
-    return {"message": "Item added to queue"}
+@router.get("/items", response_model=List[QueueItem])
+async def get_queue_items():
+    # TODO: Implement actual queue retrieval
+    return []
 
-@router.delete("/queue/{item_id}")
-async def remove_from_queue(item_id: int):
-    return {"message": f"Item {item_id} removed from queue"} 
+@router.get("/items/{item_id}", response_model=QueueItem)
+async def get_queue_item(item_id: int):
+    # TODO: Implement actual item retrieval
+    return QueueItem(id=item_id, title="Sample", status="pending", progress=0.0) 

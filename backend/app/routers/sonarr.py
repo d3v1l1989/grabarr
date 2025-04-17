@@ -1,15 +1,31 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from typing import List
+from pydantic import BaseModel
 
 router = APIRouter()
 
-@router.get("/sonarr/series")
-async def get_series():
-    return {"series": []}
+class SonarrInstance(BaseModel):
+    id: int
+    name: str
+    url: str
+    api_key: str
 
-@router.post("/sonarr/series")
-async def add_series():
-    return {"message": "Series added to Sonarr"}
+@router.get("/instances", response_model=List[SonarrInstance])
+async def get_instances():
+    # TODO: Implement actual database query
+    return []
 
-@router.get("/sonarr/status")
-async def get_sonarr_status():
-    return {"status": "connected"} 
+@router.post("/instances", response_model=SonarrInstance)
+async def create_instance(instance: SonarrInstance):
+    # TODO: Implement actual database creation
+    return instance
+
+@router.put("/instances/{instance_id}", response_model=SonarrInstance)
+async def update_instance(instance_id: int, instance: SonarrInstance):
+    # TODO: Implement actual database update
+    return instance
+
+@router.delete("/instances/{instance_id}")
+async def delete_instance(instance_id: int):
+    # TODO: Implement actual database deletion
+    return {"status": "success"} 
