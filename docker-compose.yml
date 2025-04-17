@@ -16,6 +16,7 @@ services:
       - API_V1_STR=/api/v1
     volumes:
       - api_data:/app/data
+      - ./.env:/app/.env
     env_file:
       - .env
 
