@@ -1,40 +1,75 @@
-# grabarr
+# Grabarr
 
 A simple and efficient tool for managing Sonarr instances.
 
-## Features
+## 🚀 Features
 
-- Multiple Sonarr instance management
-- Simple and intuitive interface
-- SQLite database for data persistence
-- Docker support for easy deployment
+- 📺 Multiple Sonarr instance management
+- 🎯 Simple and intuitive interface
+- 💾 SQLite database for data persistence
+- 🐳 Docker support for easy deployment
+- 🔒 API key authentication
+- 🔄 In-memory queue for efficient job processing
 
-## Requirements
+## 📋 Requirements
 
 - Python 3.8+
 - Docker (optional)
 - Sonarr instances to manage
 
-## Installation
+## 🛠️ Installation
 
 ### Docker (Recommended)
 
-1. Clone the repository
-2. Copy `.env.example` to `.env` and configure your settings
-3. Run `docker-compose up -d`
+1. Clone the repository:
+```bash
+git clone https://github.com/d3v1l1989/grabarr.git
+cd grabarr
+```
+
+2. Create a `.env` file with your API key:
+```env
+API_KEY=your_api_key_here
+```
+
+3. Start the application:
+```bash
+docker-compose up -d
+```
 
 ### Manual Installation
 
-1. Clone the repository
-2. Create a virtual environment: `python -m venv venv`
+1. Clone the repository:
+```bash
+git clone https://github.com/d3v1l1989/grabarr.git
+cd grabarr
+```
+
+2. Create a virtual environment:
+```bash
+python -m venv venv
+```
+
 3. Activate the virtual environment:
    - Windows: `venv\Scripts\activate`
    - Unix/MacOS: `source venv/bin/activate`
-4. Install dependencies: `pip install -r requirements.txt`
-5. Copy `.env.example` to `.env` and configure your settings
-6. Run the application: `python run.py`
 
-## Configuration
+4. Install dependencies:
+```bash
+pip install -r api/requirements.txt
+```
+
+5. Create a `.env` file with your API key:
+```env
+API_KEY=your_api_key_here
+```
+
+6. Start the application:
+```bash
+python api/run.py
+```
+
+## ⚙️ Configuration
 
 The application uses environment variables for configuration. Create a `.env` file with the following variables:
 
@@ -43,52 +78,46 @@ DATABASE_URL=sqlite:///./data/grabarr.db
 API_KEY=your_api_key_here
 ```
 
-## Usage
+## 🐳 Docker Compose Configuration
 
-1. Start the application
-2. Access the web interface at `http://localhost:3456`
-3. Add your Sonarr instances
-4. Start managing your Sonarr instances
+Here's the default `docker-compose.yml` configuration:
 
-## Development
+```yaml
+version: '3.8'
 
-### Code Style
+services:
+  api:
+    container_name: grabarr-api
+    image: ghcr.io/d3v1l1989/grabarr-api:latest
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8765:8765"
+    environment:
+      - DATABASE_URL=sqlite:///./data/grabarr.db
+      - API_KEY=${API_KEY}
+    volumes:
+      - api_data:/app/data
 
-The project uses Black for code formatting:
+  frontend:
+    container_name: grabarr-frontend
+    image: ghcr.io/d3v1l1989/grabarr-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3456:3456"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8765
+    depends_on:
+      - api
 
-```bash
-black .
+volumes:
+  api_data:
 ```
 
-## Development with GitHub Workspaces
-
-GitHub Workspaces provides a pre-configured development environment. To use it:
-
-1. Navigate to the "Actions" tab in your repository
-2. Select the "Development Workspace" workflow
-3. Click "Run workflow"
-4. Wait for the workspace to be set up
-5. Access the development environment through the provided URL
-
-The workspace includes:
-- Pre-configured Python and Node.js environments
-- Hot-reloading development servers
-- Database migrations
-
-## Using ghcr.io Images
-
-The application's Docker images are available on GitHub Container Registry (ghcr.io):
-
-- API: `ghcr.io/d3v1l1989/grabarr-api:latest`
-- Frontend: `ghcr.io/d3v1l1989/grabarr-frontend:latest`
-
-To pull the images:
-```bash
-docker pull ghcr.io/d3v1l1989/grabarr-api:latest
-docker pull ghcr.io/d3v1l1989/grabarr-frontend:latest
-```
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 grabarr/
@@ -113,7 +142,7 @@ grabarr/
 └── README.md
 ```
 
-## Development
+## 💻 Development
 
 ### Backend Development
 
@@ -149,6 +178,19 @@ npm install
 npm start
 ```
 
-## License
+## 📦 Using ghcr.io Images
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+The application's Docker images are available on GitHub Container Registry (ghcr.io):
+
+- API: `ghcr.io/d3v1l1989/grabarr-api:latest`
+- Frontend: `ghcr.io/d3v1l1989/grabarr-frontend:latest`
+
+To pull the images:
+```bash
+docker pull ghcr.io/d3v1l1989/grabarr-api:latest
+docker pull ghcr.io/d3v1l1989/grabarr-frontend:latest
+```
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
