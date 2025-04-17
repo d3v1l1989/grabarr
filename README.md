@@ -38,9 +38,15 @@ The application will be available at:
 
 ## ⚙️ Configuration
 
-The application uses environment variables for configuration. Create a `.env` file with the following variables:
+The application uses environment variables for configuration. You can configure these in two ways:
+
+1. Through the `.env` file in the root directory
+2. Directly in the `docker-compose.yml` file
+
+Here are the available configuration options:
 
 ```env
+# Application Info
 PROJECT_NAME=Grabarr
 VERSION=1.0.0
 API_V1_STR=/api/v1
@@ -81,8 +87,13 @@ services:
       - "8765:8765"
     environment:
       - DATABASE_URL=sqlite:///./data/grabarr.db
+      - PROJECT_NAME=Grabarr
+      - VERSION=1.0.0
+      - API_V1_STR=/api/v1
     volumes:
       - api_data:/app/data
+    env_file:
+      - .env
 
   frontend:
     container_name: grabarr-frontend
@@ -101,7 +112,7 @@ volumes:
   api_data:
 ```
 
-## ��️ Project Structure
+## 🏗️ Project Structure
 
 ```
 grabarr/
