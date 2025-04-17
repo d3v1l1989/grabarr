@@ -1,6 +1,5 @@
 from typing import Dict, Any, List, Optional
 import httpx
-from datetime import datetime
 from app.models.sonarr_instance import SonarrInstance
 
 class SonarrService:

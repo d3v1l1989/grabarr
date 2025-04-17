@@ -1,10 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Optional
 import httpx
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 router = APIRouter()
 
