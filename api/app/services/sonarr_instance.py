@@ -1,9 +1,13 @@
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
-from typing import List, Optional, Dict, Any
-import httpx
+# Standard library imports
 from datetime import datetime
+from typing import List, Optional, Dict, Any
 
+# Third-party imports
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+import httpx
+
+# Local application imports
 from app.models.sonarr_instance import SonarrInstance
 from app.schemas.sonarr_instance import SonarrInstanceCreate, SonarrInstanceUpdate
 
