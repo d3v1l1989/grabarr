@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from pydantic import BaseModel
 from datetime import datetime
 from enum import Enum
@@ -10,7 +10,10 @@ from app.services.sonarr_instance import test_sonarr_connection
 from app.services.queue_service import QueueService, SearchJob
 from app.services.sonarr_service import SonarrService
 from app.utils.cache import CacheManager
+from app.services.smart_search import SmartSearchService
+from fastapi import HTTPException
 import json
+import uuid
 
 class InstanceStatus(str, Enum):
     ONLINE = "online"
@@ -73,6 +76,73 @@ class SearchStatusType(BaseModel):
     max_concurrent_searches: int
     rate_limit_window: int
     max_searches_per_window: int
+
+@strawberry.type
+class SearchPatternType:
+    series_id: int
+    season_number: int
+    episode_number: int
+    successful_delays: Dict[str, int]
+    failed_delays: Dict[str, int]
+    last_successful_delay: Optional[int]
+    last_air_date: Optional[datetime]
+
+@strawberry.type
+class SmartSearchStats:
+    total_patterns: int
+    average_success_rate: float
+    most_common_delay: int
+    patterns: List[SearchPatternType]
+
+class JobStatusType(graphene.Enum):
+    QUEUED = "queued"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    DEPENDENCY_FAILED = "dependency_failed"
+
+class JobPriorityType(graphene.Enum):
+    LOW = 0
+    NORMAL = 1
+    HIGH = 2
+    URGENT = 3
+
+class JobDependencyType(graphene.ObjectType):
+    job_id = graphene.String(required=True)
+    required_status = graphene.Field(JobStatusType, required=True)
+
+class RetryPolicyType(graphene.ObjectType):
+    max_retries = graphene.Int(required=True)
+    retry_delay = graphene.Int(required=True)
+    backoff_factor = graphene.Int(required=True)
+
+class AdvancedSearchJobType(graphene.ObjectType):
+    job_id = graphene.String(required=True)
+    instance_id = graphene.Int(required=True)
+    episode_id = graphene.Int(required=True)
+    series_id = graphene.Int(required=True)
+    season_number = graphene.Int(required=True)
+    episode_number = graphene.Int(required=True)
+    priority = graphene.Field(JobPriorityType, required=True)
+    delay = graphene.Int(required=True)
+    dependencies = graphene.List(JobDependencyType)
+    retry_policy = graphene.Field(RetryPolicyType)
+    created_at = graphene.DateTime(required=True)
+    status = graphene.Field(JobStatusType, required=True)
+    retry_count = graphene.Int(required=True)
+    last_attempt = graphene.DateTime()
+    error = graphene.String()
+    dependent_jobs = graphene.List(graphene.String)
+
+class AdvancedQueueStatsType(graphene.ObjectType):
+    queue_size = graphene.Int(required=True)
+    processing_size = graphene.Int(required=True)
+    max_concurrent_searches = graphene.Int(required=True)
+    rate_limit_window = graphene.Int(required=True)
+    max_searches_per_window = graphene.Int(required=True)
+    jobs_by_status = graphene.JSONString(required=True)
+    jobs_by_priority = graphene.JSONString(required=True)
 
 class Query:
     async def resolve_sonarr_instances(self, info) -> List[SonarrInstanceType]:
@@ -155,6 +225,76 @@ class Query:
         status = await queue_service.get_queue_status()
         return SearchStatusType(**status)
 
+    @strawberry.field
+    async def smart_search_stats(self, info) -> SmartSearchStats:
+        cache_manager = CacheManager("redis://redis:7369/0")
+        smart_search = SmartSearchService(cache_manager)
+        patterns = await smart_search._load_patterns()
+        
+        total_patterns = len(patterns)
+        total_success_rate = 0.0
+        delay_counts = {}
+        
+        pattern_types = []
+        for pattern in patterns.values():
+            successes = sum(pattern.successful_delays.values())
+            failures = sum(pattern.failed_delays.values())
+            total = successes + failures
+            success_rate = successes / total if total > 0 else 0
+            total_success_rate += success_rate
+            
+            for delay in pattern.successful_delays:
+                delay_counts[delay] = delay_counts.get(delay, 0) + pattern.successful_delays[delay]
+            
+            pattern_types.append(SearchPatternType(
+                series_id=pattern.series_id,
+                season_number=pattern.season_number,
+                episode_number=pattern.episode_number,
+                successful_delays=pattern.successful_delays,
+                failed_delays=pattern.failed_delays,
+                last_successful_delay=pattern.last_successful_delay,
+                last_air_date=pattern.last_air_date
+            ))
+        
+        average_success_rate = total_success_rate / total_patterns if total_patterns > 0 else 0
+        most_common_delay = max(delay_counts.items(), key=lambda x: x[1])[0] if delay_counts else 0
+        
+        return SmartSearchStats(
+            total_patterns=total_patterns,
+            average_success_rate=average_success_rate,
+            most_common_delay=most_common_delay,
+            patterns=pattern_types
+        )
+
+    advanced_queue_stats = graphene.Field(AdvancedQueueStatsType)
+
+    async def resolve_advanced_queue_stats(self, info):
+        queue_service = info.context["queue_service"]
+        stats = await queue_service.get_queue_status()
+        
+        # Get additional statistics
+        jobs = await queue_service.cache.redis.hgetall(queue_service.jobs_key)
+        jobs_by_status = {}
+        jobs_by_priority = {}
+        
+        for job_data in jobs.values():
+            job = json.loads(job_data)
+            status = job["status"]
+            priority = job["priority"]
+            
+            jobs_by_status[status] = jobs_by_status.get(status, 0) + 1
+            jobs_by_priority[priority] = jobs_by_priority.get(priority, 0) + 1
+        
+        return AdvancedQueueStatsType(
+            queue_size=stats["queue_size"],
+            processing_size=stats["processing_size"],
+            max_concurrent_searches=stats["max_concurrent_searches"],
+            rate_limit_window=stats["rate_limit_window"],
+            max_searches_per_window=stats["max_searches_per_window"],
+            jobs_by_status=json.dumps(jobs_by_status),
+            jobs_by_priority=json.dumps(jobs_by_priority)
+        )
+
 @strawberry.input
 class SonarrInstanceInput:
     name: str
@@ -216,25 +356,37 @@ class Mutation:
         cache_manager = CacheManager("redis://redis:7369/0")
         queue_service = QueueService(cache_manager)
         
-        # Calculate scheduled time based on delay
-        scheduled_time = datetime.utcnow()
-        if input.delay:
-            scheduled_time = scheduled_time + timedelta(minutes=input.delay)
-        
-        job_id = await queue_service.add_search(
-            instance_id=input.instance_id,
-            episode_id=input.episode_id,
-            priority=input.priority
-        )
-        
-        return ScheduledSearchType(
-            id=job_id,
-            episode_id=input.episode_id,
-            instance_id=input.instance_id,
-            scheduled_time=scheduled_time,
-            status="pending",
-            priority=input.priority
-        )
+        # Get series and episode info
+        db = next(get_db())
+        try:
+            instance = db.query(SonarrInstance).filter(SonarrInstance.id == input.instance_id).first()
+            if not instance:
+                raise HTTPException(status_code=404, detail="Instance not found")
+            
+            sonarr_service = SonarrService(instance, cache_manager)
+            episode = await sonarr_service.get_episode(input.episode_id)
+            if not episode:
+                raise HTTPException(status_code=404, detail="Episode not found")
+            
+            job_id = await queue_service.add_search(
+                instance_id=input.instance_id,
+                episode_id=input.episode_id,
+                series_id=episode['seriesId'],
+                season_number=episode['seasonNumber'],
+                episode_number=episode['episodeNumber'],
+                priority=input.priority
+            )
+            
+            return ScheduledSearchType(
+                id=job_id,
+                episode_id=input.episode_id,
+                instance_id=input.instance_id,
+                scheduled_time=datetime.utcnow(),
+                status="queued",
+                priority=input.priority
+            )
+        finally:
+            db.close()
 
     @strawberry.mutation
     async def retry_failed_search(self, info, job_id: str) -> SearchStatusType:
@@ -262,6 +414,58 @@ class Mutation:
         # Return updated search status
         status = await queue_service.get_queue_status()
         return SearchStatusType(**status)
+
+    @strawberry.mutation
+    async def schedule_advanced_search(self, info, input):
+        queue_service = info.context["queue_service"]
+        db = info.context["db"]
+        
+        # Get episode information
+        episode = await db.fetch_one(
+            "SELECT * FROM episodes WHERE id = $1",
+            input.episode_id
+        )
+        if not episode:
+            raise Exception("Episode not found")
+        
+        # Create job dependencies
+        dependencies = []
+        if input.dependencies:
+            for dep_id in input.dependencies:
+                dependencies.append(JobDependency(dep_id))
+        
+        # Create job
+        job = AdvancedSearchJob(
+            job_id=str(uuid.uuid4()),
+            instance_id=input.instance_id,
+            episode_id=input.episode_id,
+            series_id=episode["series_id"],
+            season_number=episode["season_number"],
+            episode_number=episode["episode_number"],
+            priority=input.priority,
+            dependencies=dependencies,
+            retry_policy=input.retry_policy
+        )
+        
+        # Add to queue
+        await queue_service.add_job(job)
+        return job
+
+    @strawberry.mutation
+    async def retry_job(self, info, job_id):
+        queue_service = info.context["queue_service"]
+        success = await queue_service.retry_job(job_id)
+        if not success:
+            raise Exception("Failed to retry job")
+        return await queue_service._get_job(job_id)
+
+    @strawberry.mutation
+    async def cancel_job(self, info, job_id):
+        queue_service = info.context["queue_service"]
+        success = await queue_service.cancel_job(job_id)
+        if not success:
+            raise Exception("Failed to cancel job")
+        return await queue_service._get_job(job_id)
 
 schema = """
 enum InstanceStatus {
@@ -338,6 +542,8 @@ type Query {
     sonarrInstance(id: Int!): SonarrInstance
     upcomingSearches: [ScheduledSearch!]!
     searchStatus: SearchStatus!
+    smartSearchStats: SmartSearchStats!
+    advancedQueueStats: AdvancedQueueStatsType!
 }
 
 type Mutation {
@@ -346,6 +552,9 @@ type Mutation {
     testConnection(input: ConnectionTestInput!): ConnectionTestResult!
     scheduleSearch(input: ScheduleSearchInput!): ScheduledSearch!
     retryFailedSearch(jobId: String!): SearchStatus!
+    scheduleAdvancedSearch(input: ScheduleAdvancedSearchInput!): AdvancedSearchJobType!
+    retryJob(jobId: String!): AdvancedSearchJobType!
+    cancelJob(jobId: String!): AdvancedSearchJobType!
 }
 
 input SonarrInstanceInput {
@@ -364,6 +573,14 @@ input ScheduleSearchInput {
     instanceId: Int!
     priority: Int
     delay: Int
+}
+
+input ScheduleAdvancedSearchInput {
+    episodeId: Int!
+    instanceId: Int!
+    priority: JobPriorityType
+    dependencies: [String!]
+    retryPolicy: RetryPolicyType
 }
 """
 
