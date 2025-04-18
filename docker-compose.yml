@@ -28,6 +28,7 @@ services:
       - "3456:3456"
     environment:
       - REACT_APP_API_URL=http://localhost:8765
+      - PORT=3456
     depends_on:
       - api
 
