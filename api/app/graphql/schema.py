@@ -20,6 +20,7 @@ from app.models.user import User
 from app.services.sonarr_instance import SonarrInstanceService
 from app.services.queue_service import QueueService
 
+@strawberry.enum
 class InstanceStatus(str, Enum):
     ONLINE = "online"
     OFFLINE = "offline"
