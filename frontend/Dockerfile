@@ -11,9 +11,6 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
-# Set environment variables
-ENV PORT=3456
-
 # Expose the port the app runs on
 EXPOSE 3456
 
