@@ -1,5 +1,6 @@
 .layout {
   min-height: 100vh;
+  background: #141414;
 }
 
 .logo {
@@ -7,16 +8,19 @@
   width: 120px;
   height: 31px;
   margin: 16px 24px 16px 0;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .site-layout-content {
   min-height: 280px;
   padding: 24px;
-  background: #fff;
+  background: #1f1f1f;
+  border-radius: 4px;
 }
 
 .ant-layout-header {
   display: flex;
   align-items: center;
+  background: #1f1f1f;
+  border-bottom: 1px solid #303030;
 } 

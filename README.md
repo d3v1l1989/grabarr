@@ -61,10 +61,22 @@ API_KEY=your_api_key_here
 # Database
 DATABASE_URL=sqlite:///./data/grabarr.db
 
+# Frontend Configuration
+REACT_APP_API_URL=http://localhost:8765  # Change this to your API URL in production
+
 # Sonarr (Optional - configure these later)
 # SONARR_API_KEY=your_sonarr_api_key
 # SONARR_BASE_URL=http://localhost:8989
 ```
+
+### Production Deployment
+
+For production deployment, make sure to:
+
+1. Set secure values for all sensitive information
+2. Update the API URL to point to your production API endpoint
+3. Use HTTPS for all API communications
+4. Set appropriate CORS settings on the API server
 
 ### Docker Compose Services
 
