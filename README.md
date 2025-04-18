@@ -29,7 +29,7 @@ cd grabarr
 
 3. Start the application:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 The application will be available at:
@@ -61,57 +61,25 @@ API_KEY=your_api_key_here
 # Database
 DATABASE_URL=sqlite:///./data/grabarr.db
 
-# Sonarr (Optional)
+# Sonarr (Optional - configure these later)
 # SONARR_API_KEY=your_sonarr_api_key
 # SONARR_BASE_URL=http://localhost:8989
 ```
 
-## 🐳 Docker Compose Configuration
+### Docker Compose Services
 
-The default `docker-compose.yml` includes:
+The application consists of two main services:
 
-- FastAPI backend
-- React frontend
+1. **API Service** (`grabarr-api`)
+   - Port: 8765
+   - Environment variables loaded from `.env` file
+   - Persistent data stored in `api_data` volume
+   - SQLite database stored in `/app/data`
 
-```yaml
-version: '3.8'
-
-services:
-  api:
-    container_name: grabarr-api
-    image: ghcr.io/d3v1l1989/grabarr-api:latest
-    build:
-      context: ./api
-      dockerfile: Dockerfile
-    ports:
-      - "8765:8765"
-    environment:
-      - DATABASE_URL=sqlite:///./data/grabarr.db
-      - PROJECT_NAME=Grabarr
-      - VERSION=1.0.0
-      - API_V1_STR=/api/v1
-    volumes:
-      - api_data:/app/data
-      - ./.env:/app/.env
-    env_file:
-      - .env
-
-  frontend:
-    container_name: grabarr-frontend
-    image: ghcr.io/d3v1l1989/grabarr-frontend:latest
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3456:3456"
-    environment:
-      - REACT_APP_API_URL=http://localhost:8765
-    depends_on:
-      - api
-
-volumes:
-  api_data:
-```
+2. **Frontend Service** (`grabarr-frontend`)
+   - Port: 3456
+   - Depends on the API service
+   - Environment variables for API URL configuration
 
 ## 🏗️ Project Structure
 
@@ -199,4 +167,6 @@ npm install
 ```
 
 3. Start the development server:
+```bash
+npm start
 ```
