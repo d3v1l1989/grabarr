@@ -73,9 +73,11 @@ const InstanceList: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: 16 }}>
-        <Button type="primary">
-          Add New Instance
-        </Button>
+        <Link to="/instances/new">
+          <Button type="primary">
+            Add New Instance
+          </Button>
+        </Link>
       </div>
       <Table
         columns={columns}

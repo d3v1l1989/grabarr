@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, message, Space, Typography } from 'antd';
 import { useMutation, gql } from '@apollo/client';
+import { useNavigate } from 'react-router-dom';
 
 const { Text } = Typography;
 
@@ -37,6 +38,7 @@ const InstanceForm: React.FC<InstanceFormProps> = ({ onSuccess }) => {
   const [testConnection] = useMutation(TEST_CONNECTION);
   const [testResult, setTestResult] = useState<any>(null);
   const [testing, setTesting] = useState(false);
+  const navigate = useNavigate();
 
   const handleTestConnection = async () => {
     try {
@@ -78,6 +80,7 @@ const InstanceForm: React.FC<InstanceFormProps> = ({ onSuccess }) => {
       message.success('Instance created successfully');
       form.resetFields();
       if (onSuccess) onSuccess();
+      navigate('/');
     } catch (error) {
       message.error('Failed to create instance');
       console.error(error);
